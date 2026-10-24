@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leadership Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Leadership Cards — standalone version.
+   Layout: a workshop table — the deck spread out in a grid, your answer slip under it, the group's board below. */
+:root {
+  --bg: #EDF0F4;
+  --surface: #FFFFFF;
+  --ink: #18202E;
+  --muted: #586376;
+  --line: #D3D9E2;
+  --accent: #1F5FD1;
+  --accent-ink: #FFFFFF;
+  --chip: #E4EAF4;
+  --ok: #1E7A4F;
+  --warn: #B3412E;
+  --shadow: 0 1px 2px rgba(24,32,46,.08), 0 6px 18px rgba(24,32,46,.08);
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10141B; --surface: #1A2029; --ink: #E7EBF1; --muted: #9AA4B5; --line: #2C3441;
+    --accent: #7AA2FF; --accent-ink: #0C1220; --chip: #242D3B; --ok: #5FCB95; --warn: #F08A76;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10141B; --surface: #1A2029; --ink: #E7EBF1; --muted: #9AA4B5; --line: #2C3441;
+  --accent: #7AA2FF; --accent-ink: #0C1220; --chip: #242D3B; --ok: #5FCB95; --warn: #F08A76;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 40px;
+}
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.02; letter-spacing: -0.02em; font-weight: 700; }
+h2 { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.01em; }
+.eyebrow {
+  font-size: .78rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent);
+}
+header { display: grid; gap: 14px; max-width: 62ch; }
+header p { margin: 0; color: var(--muted); font-size: 1.08rem; }
+.steps { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 0; margin: 4px 0 0; list-style: none; counter-reset: s; }
+.steps li { counter-increment: s; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.steps li::before {
+  content: counter(s); display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--ink); color: var(--bg); font-size: .8rem; font-weight: 600;
+}
+
+/* The deck */
+.deck {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 820px) { .deck { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } }
+@media (max-width: 440px) { .deck { gap: 10px; } }
+.card {
+  appearance: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; cursor: pointer; text-align: center;
+  position: relative;
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  display: grid; grid-template-rows: auto auto;
+  overflow: hidden;
+  outline: 3px solid transparent; outline-offset: 2px;
+  transition: transform .18s ease, outline-color .18s ease, box-shadow .18s ease;
+}
+.card svg { display: block; width: 100%; height: auto; aspect-ratio: 5 / 6; max-width: 100%; }
+.card .name { padding: 8px 6px 10px; font-weight: 600; font-size: .95rem; }
+.card:hover { transform: translateY(-3px); }
+.card:focus-visible { outline-color: var(--accent); }
+.card[aria-pressed="true"] { outline-color: var(--accent); transform: translateY(-5px); }
+.card .tick {
+  position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink); display: grid; place-items: center;
+  font-size: 15px; font-weight: 700; opacity: 0; transform: scale(.6); transition: opacity .18s, transform .18s;
+}
+.card[aria-pressed="true"] .tick { opacity: 1; transform: scale(1); }
+.card.dim { opacity: .55; }
+.card.dim:hover, .card.dim:focus-visible { opacity: 1; }
+
+/* Answer slip */
+.slip {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+@media (max-width: 560px) { .slip { grid-template-columns: 84px minmax(0, 1fr); gap: 16px; padding: 16px; } }
+.slip-thumb {
+  border-radius: 10px; overflow: hidden; background: var(--chip); aspect-ratio: 5 / 6; max-width: 100%;
+  display: grid; place-items: center; color: var(--muted); font-size: .8rem; text-align: center; padding: 0;
+}
+.slip-thumb svg { width: 100%; height: 100%; display: block; }
+.slip-body { display: grid; gap: 10px; min-width: 0; }
+.slip-body label { font-weight: 600; }
+.slip-body label span { color: var(--accent); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; min-width: 0; }
+.slip-body > * { min-width: 0; }
+input[type="text"] {
+  flex: 1 1 220px; min-width: 0; width: 100%;
+  font: inherit; font-size: 1.1rem;
+  padding: 12px 14px; border-radius: 10px;
+  border: 1.5px solid var(--line); background: var(--bg); color: var(--ink);
+}
+input[type="text"]:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+.btn {
+  font: inherit; font-weight: 600; cursor: pointer;
+  padding: 12px 20px; border-radius: 10px; border: 0;
+  background: var(--accent); color: var(--accent-ink);
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.btn.quiet { background: transparent; color: var(--muted); border: 1.5px solid var(--line); }
+.btn.danger { background: var(--warn); color: var(--surface); }
+.hint { font-size: .9rem; color: var(--muted); margin: 0; min-height: 1.4em; }
+.hint.ok { color: var(--ok); }
+.hint.err { color: var(--warn); }
+
+/* Group board */
+.board-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.board { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 16px; }
+@media (max-width: 420px) { .board { grid-template-columns: minmax(0, 1fr); } }
+.group {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 14px; align-items: start;
+  padding: 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line);
+}
+.group svg { width: 64px; height: auto; aspect-ratio: 5 / 6; border-radius: 8px; display: block; }
+.group h3 { margin: 0 0 6px; font-family: var(--font-display); font-size: 1.1rem; display: flex; gap: 8px; align-items: baseline; }
+.group h3 small { font-family: var(--font-body); font-weight: 500; font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: var(--chip); border-radius: 999px; padding: 3px 11px; font-size: .95rem; overflow-wrap: anywhere; }
+.chip.mine { background: var(--accent); color: var(--accent-ink); }
+.empty {
+  margin-top: 16px; padding: 28px 20px; border: 1.5px dashed var(--line); border-radius: 14px;
+  color: var(--muted); text-align: center;
+}
+.notice { background: var(--chip); border-radius: 12px; padding: 12px 16px; font-size: .92rem; color: var(--muted); }
+.notice strong { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .card .tick { transition: none; }
+  .card:hover, .card[aria-pressed="true"] { transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Workshop exercise</div>
+    <h1>Leadership Cards</h1>
+    <p>Look over the 15 cards. Pick the one that says something about leadership to you, then sum up why in a word or two.</p>
+    <ol class="steps">
+      <li>Choose a card</li>
+      <li>Write one or two words</li>
+      <li>See what the group chose</li>
+    </ol>
+  </header>
+
+  <div class="notice" id="notice" hidden></div>
+
+  <section aria-label="The cards">
+    <div class="deck" id="deck" role="group" aria-label="Choose one card"></div>
+  </section>
+
+  <section class="slip" id="slip" aria-label="Your answer">
+    <div class="slip-thumb" id="slip-thumb">No card yet</div>
+    <form class="slip-body" id="form" novalidate>
+      <label for="words">When you think of <span>Leadership</span>, what does <span id="slip-name">your card</span> mean?</label>
+      <div class="row">
+        <input type="text" id="words" maxlength="40" autocomplete="off" placeholder="e.g. Steady direction">
+        <button class="btn" id="submit" type="submit" disabled>Add my card</button>
+      </div>
+      <p class="hint" id="hint" aria-live="polite">Choose a card above to begin.</p>
+    </form>
+  </section>
+
+  <section aria-labelledby="board-title">
+    <div class="board-head">
+      <h2 id="board-title">What the group chose</h2>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="empty" id="empty">No cards yet. Once people add theirs, they appear here, grouped by image.</div>
+  </section>
+</div>
+
+<!-- Firebase (shared answers). Leave as-is. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* ============================================================
+   1. PASTE YOUR FIREBASE SETTINGS HERE
+   Firebase console > Project settings > Your apps > Web app > Config.
+   While apiKey is empty, the page runs in preview mode: answers are
+   saved only in the visitor's own browser and nobody else sees them.
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyAhyP2O1Dgk_Fhvg1J2a7Hb8qjV7WleOUo",
+  authDomain: "leadership-cards.firebaseapp.com",
+  projectId: "leadership-cards",
+  storageBucket: "leadership-cards.firebasestorage.app",
+  messagingSenderId: "867489613135",
+  appId: "1:867489613135:web:ab9ec33b7cb47bf191713a"
+};
+
+/* 2. SESSIONS: add ?session=NAME to the link for a fresh, empty board
+   (e.g. yoursite.com/leadership.html?session=march-team). Default: "main". */
+
+const CARDS = [
+  { id: "fire", name: "Fire", art: `<rect width="100" height="120" fill="#FBE1CF"/><circle cx="50" cy="70" r="34" fill="#FDEBDD"/><rect x="24" y="90" width="52" height="8" rx="4" fill="#8A5A3C" transform="rotate(-12 50 94)"/><rect x="24" y="90" width="52" height="8" rx="4" fill="#9E6A48" transform="rotate(12 50 94)"/><path d="M50 26 C62 42 72 54 70 72 C68 86 60 92 50 92 C40 92 32 86 30 72 C29 60 38 52 42 42 C44 52 47 56 50 56 C53 48 46 38 50 26Z" fill="#EE7234"/><path d="M50 58 C57 66 62 72 60 80 C59 87 55 90 50 90 C45 90 41 87 40 80 C39 73 45 68 50 58Z" fill="#FFC24B"/>` },
+  { id: "compass", name: "Compass", art: `<rect width="100" height="120" fill="#DAE9F2"/><circle cx="50" cy="29" r="4" fill="none" stroke="#2E5A7A" stroke-width="3"/><circle cx="50" cy="64" r="31" fill="#2E5A7A"/><circle cx="50" cy="64" r="25" fill="#F6FAFC"/><g fill="#2E5A7A"><rect x="48.5" y="41" width="3" height="5"/><rect x="48.5" y="82" width="3" height="5"/><rect x="27" y="62.5" width="5" height="3"/><rect x="68" y="62.5" width="5" height="3"/></g><g transform="rotate(28 50 64)"><path d="M50 42 L56 64 L44 64Z" fill="#E0533D"/><path d="M50 86 L56 64 L44 64Z" fill="#2E5A7A"/></g><circle cx="50" cy="64" r="3" fill="#F6FAFC" stroke="#2E5A7A" stroke-width="1.5"/>` },
+  { id: "bottle", name: "Bottle", art: `<rect width="100" height="120" fill="#D8EEE3"/><ellipse cx="50" cy="102" rx="28" ry="4" fill="#B8DCCA"/><path d="M43 27 h14 v11 c0 6 13 10 13 22 v34 a6 6 0 0 1 -6 6 h-28 a6 6 0 0 1 -6 -6 v-34 c0 -12 13 -16 13 -22 z" fill="#7CC2A3"/><rect x="44" y="19" width="12" height="10" rx="2" fill="#B98A5E"/><rect x="44" y="62" width="18" height="24" rx="2" fill="#FFF6DF" transform="rotate(12 53 74)"/><g stroke="#C9B48A" stroke-width="1.4" transform="rotate(12 53 74)"><path d="M47 68 h12 M47 72 h12 M47 76 h9 M47 80 h11"/></g><rect x="35" y="60" width="4" height="28" rx="2" fill="#FFFFFF" opacity=".55"/>` },
+  { id: "mountain", name: "Mountain", art: `<rect width="100" height="120" fill="#E2E4F4"/><circle cx="74" cy="34" r="9" fill="#F5C258"/><path d="M4 98 L38 50 L72 98Z" fill="#9097CB"/><path d="M28 98 L62 38 L96 98Z" fill="#5A619D"/><path d="M62 38 L71.5 55 L66 52 L62 57 L57.5 52 L52.5 55Z" fill="#FFFFFF"/><path d="M38 50 L44 58.5 L40 57 L36.5 60 L33 56.8Z" fill="#FFFFFF"/><rect y="96" width="100" height="24" fill="#C6CAE6"/>` },
+  { id: "lighthouse", name: "Lighthouse", art: `<rect width="100" height="120" fill="#D9E7F6"/><path d="M50 34 L96 20 L96 48Z" fill="#FFE59A" opacity=".85"/><path d="M50 34 L4 20 L4 48Z" fill="#FFE59A" opacity=".85"/><path d="M40 28 L50 17 L60 28Z" fill="#D5483B"/><rect x="43" y="28" width="14" height="12" fill="#FFD25A"/><rect x="41" y="39" width="18" height="3" fill="#3B4252"/><path d="M42 42 h16 l5 50 h-26z" fill="#F7F7F2"/><path d="M40.8 54 L59.2 54 L60.3 65 L39.7 65Z" fill="#D5483B"/><path d="M38.5 76 L61.5 76 L62.6 88 L37.4 88Z" fill="#D5483B"/><rect x="31" y="90" width="38" height="8" rx="4" fill="#6B6F7A"/><path d="M0 100 Q25 92 50 100 T100 100 V120 H0Z" fill="#4C7FB5"/>` },
+  { id: "tree", name: "Tree", art: `<rect width="100" height="120" fill="#E1EFD7"/><ellipse cx="50" cy="98" rx="32" ry="4.5" fill="#B7D5A1"/><rect x="46" y="62" width="8" height="36" rx="2" fill="#8A5A3C"/><circle cx="34" cy="58" r="15" fill="#4D8D4A"/><circle cx="66" cy="58" r="15" fill="#4D8D4A"/><circle cx="50" cy="44" r="22" fill="#5FA05A"/><circle cx="42" cy="38" r="4" fill="#7DBB71"/>` },
+  { id: "key", name: "Key", art: `<rect width="100" height="120" fill="#F5EAC6"/><g transform="rotate(-35 50 62)"><circle cx="50" cy="34" r="14" fill="none" stroke="#C4932A" stroke-width="7"/><rect x="46.5" y="47" width="7" height="48" rx="2" fill="#C4932A"/><rect x="53" y="80" width="10" height="5" fill="#C4932A"/><rect x="53" y="89" width="7" height="5" fill="#C4932A"/></g>` },
+  { id: "bridge", name: "Bridge", art: `<rect width="100" height="120" fill="#DBEDF0"/><rect y="80" width="100" height="40" fill="#78B5C3"/><path d="M18 80 A32 18 0 0 0 82 80Z" fill="#A9D3DC"/><rect x="4" y="44" width="92" height="4" fill="#9C6650"/><g fill="#9C6650"><rect x="8" y="44" width="3" height="10"/><rect x="30" y="44" width="3" height="10"/><rect x="48.5" y="44" width="3" height="10"/><rect x="67" y="44" width="3" height="10"/><rect x="89" y="44" width="3" height="10"/></g><path d="M4 52 H96 V82 H84 A34 22 0 0 0 16 82 H4Z" fill="#C4876A"/><path d="M4 52 H96 V57 H4Z" fill="#B3765A"/>` },
+  { id: "anchor", name: "Anchor", art: `<rect width="100" height="120" fill="#DCE2EE"/><circle cx="50" cy="28" r="7" fill="none" stroke="#2D3E66" stroke-width="5"/><rect x="47" y="34" width="6" height="56" rx="3" fill="#2D3E66"/><rect x="34" y="44" width="32" height="6" rx="3" fill="#2D3E66"/><path d="M24 72 Q28 96 50 96 Q72 96 76 72" fill="none" stroke="#2D3E66" stroke-width="6" stroke-linecap="round"/><path d="M17 76 L24 63 L31 76Z" fill="#2D3E66"/><path d="M69 76 L76 63 L83 76Z" fill="#2D3E66"/>` },
+  { id: "sunrise", name: "Sunrise", art: `<rect width="100" height="120" fill="#FCE6D4"/><g stroke="#F2984A" stroke-width="4" stroke-linecap="round"><path d="M25.8 68 L17.1 63"/><path d="M36 57.8 L31 49.1"/><path d="M50 54 L50 44"/><path d="M64 57.8 L69 49.1"/><path d="M74.2 68 L82.9 63"/></g><circle cx="50" cy="82" r="22" fill="#F2984A"/><rect y="82" width="100" height="38" fill="#E8B48A"/><g stroke="#F6D2B3" stroke-width="3" stroke-linecap="round"><path d="M30 90 H70"/><path d="M38 98 H62"/><path d="M45 106 H55"/></g>` },
+  { id: "seedling", name: "Seedling", art: `<rect width="100" height="120" fill="#E5F1DA"/><path d="M50 74 V48" stroke="#4D8D4A" stroke-width="3.5" stroke-linecap="round"/><path d="M50 56 C40 56 31 48 31 38 C42 38 50 45 50 56Z" fill="#6DB165"/><path d="M50 50 C60 50 70 42 70 31 C58 31 50 39 50 50Z" fill="#5FA05A"/><path d="M32 78 h36 l-4 22 h-28z" fill="#C8734E"/><rect x="29" y="72" width="42" height="8" rx="2" fill="#B5623F"/>` },
+  { id: "sailboat", name: "Sailboat", art: `<rect width="100" height="120" fill="#DBE9F6"/><path d="M52 24 V76 H82Z" fill="#FAFAF6"/><path d="M48 34 V76 H25Z" fill="#F2C14E"/><rect x="48.5" y="21" width="3" height="60" fill="#6B4A36"/><path d="M19 80 H85 L75 94 H29Z" fill="#C2513F"/><path d="M0 97 Q12 91 25 97 T50 97 T75 97 T100 97 V120 H0Z" fill="#5B8EC3"/>` },
+  { id: "lantern", name: "Lantern", art: `<rect width="100" height="120" fill="#EAE3F1"/><circle cx="50" cy="62" r="32" fill="#FFE7A0" opacity=".55"/><path d="M41 31 Q50 17 59 31" fill="none" stroke="#3F3A4A" stroke-width="3"/><rect x="38" y="40" width="24" height="38" rx="3" fill="#FFF2C2"/><path d="M50 50 C55.5 57 56.5 63 50 69 C43.5 63 44.5 57 50 50Z" fill="#F2984A"/><path d="M50 58 C52.5 61 53 64 50 67 C47 64 47.5 61 50 58Z" fill="#FFD25A"/><path d="M44 40 V78 M56 40 V78" stroke="#3F3A4A" stroke-width="1.5"/><rect x="38" y="40" width="24" height="38" rx="3" fill="none" stroke="#3F3A4A" stroke-width="3"/><path d="M35 41 L42 30 H58 L65 41Z" fill="#3F3A4A"/><rect x="34" y="78" width="32" height="7" rx="2" fill="#3F3A4A"/>` },
+  { id: "bird", name: "Bird", art: `<rect width="100" height="120" fill="#DEEDF3"/><path d="M8 88 Q50 79 94 85" stroke="#7A5440" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="82" cy="80" rx="6" ry="3" fill="#6DB165" transform="rotate(-25 82 80)"/><ellipse cx="18" cy="82" rx="6" ry="3" fill="#6DB165" transform="rotate(20 18 82)"/><path d="M44 76 V84 M52 76 V83" stroke="#7A5440" stroke-width="2"/><path d="M30 68 L13 78 L19 63Z" fill="#3D7BB0"/><ellipse cx="46" cy="64" rx="20" ry="14" fill="#4A90C8"/><path d="M33 69 Q50 82 65 65 Q52 74 33 69Z" fill="#F4C97A"/><path d="M33 60 Q46 49 59 60 Q46 70 33 60Z" fill="#3D7BB0"/><circle cx="64" cy="50" r="10" fill="#4A90C8"/><circle cx="67" cy="48" r="1.8" fill="#1C2533"/><path d="M73 49 L81 51.5 L73 54Z" fill="#F2A33A"/>` },
+  { id: "balloon", name: "Hot-air balloon", art: `<rect width="100" height="120" fill="#FAE3DF"/><ellipse cx="20" cy="98" rx="13" ry="5" fill="#FFFFFF"/><ellipse cx="82" cy="30" rx="10" ry="4" fill="#FFFFFF"/><path d="M50 18 C70 18 80 32 80 46 C80 62 62 72 56 80 H44 C38 72 20 62 20 46 C20 32 30 18 50 18Z" fill="#E0533D"/><path d="M50 18 C58 18 64 32 64 46 C64 62 56 72 54 80 H46 C44 72 36 62 36 46 C36 32 42 18 50 18Z" fill="#F5C258"/><path d="M50 18 C53 28 54 38 54 46 C54 62 51 72 50 80 C49 72 46 62 46 46 C46 38 47 28 50 18Z" fill="#E0533D"/><path d="M45 80 L46 91 M55 80 L54 91" stroke="#6B4A36" stroke-width="1.5"/><rect x="44" y="91" width="12" height="9" rx="1.5" fill="#A8774F"/>` },
+];
+const BY_ID = Object.fromEntries(CARDS.map(c => [c.id, c]));
+const svg = c => `<svg viewBox="0 0 100 120" role="img" aria-label="${c.name}">${c.art}</svg>`;
+const $ = id => document.getElementById(id);
+const deck = $("deck"), words = $("words"), submit = $("submit"), hint = $("hint");
+
+// Session name from the link, and a random id that remembers this participant
+const rawSession = new URLSearchParams(location.search).get("session") || "main";
+const SESSION = /^[A-Za-z0-9_-]{1,40}$/.test(rawSession) ? rawSession : "main";
+function participantId() {
+  const fresh = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/[^A-Za-z0-9-]/g, "");
+  try {
+    let id = localStorage.getItem("lc-participant");
+    if (!id) { id = fresh; localStorage.setItem("lc-participant", id); }
+    return id;
+  } catch (_) { return fresh; }
+}
+const state = { selected: null, mine: null, uid: participantId(), docs: [], save: null };
+
+// ---------- Deck ----------
+deck.innerHTML = CARDS.map(c =>
+  `<button type="button" class="card" data-id="${c.id}" aria-pressed="false">${svg(c)}<span class="name">${c.name}</span><span class="tick" aria-hidden="true">&#10003;</span></button>`
+).join("");
+deck.addEventListener("click", e => {
+  const btn = e.target.closest(".card");
+  if (btn) select(btn.dataset.id, true);
+});
+
+function select(id, fromClick) {
+  state.selected = id;
+  deck.querySelectorAll(".card").forEach(b => {
+    const on = b.dataset.id === id;
+    b.setAttribute("aria-pressed", on);
+    b.classList.toggle("dim", !!id && !on);
+  });
+  const c = BY_ID[id];
+  $("slip-thumb").innerHTML = c ? svg(c) : "No card yet";
+  $("slip-name").textContent = c ? `the ${c.name.toLowerCase()}` : "your card";
+  if (fromClick) {
+    $("slip").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    setHint("Now add one or two words.", "");
+  }
+  refreshButton();
+}
+
+const cleanWords = v => v.trim().replace(/\s+/g, " ");
+const wordCount = v => v ? v.split(" ").length : 0;
+function setHint(text, kind) { hint.textContent = text; hint.className = "hint" + (kind ? " " + kind : ""); }
+
+function refreshButton() {
+  const n = wordCount(cleanWords(words.value));
+  submit.disabled = !state.selected || n < 1 || n > 2 || !state.save;
+  submit.textContent = state.mine ? "Update my card" : "Add my card";
+  if (n > 2) setHint("Keep it to one or two words.", "err");
+}
+words.addEventListener("input", () => {
+  if (hint.classList.contains("err") && wordCount(cleanWords(words.value)) <= 2) setHint("", "");
+  refreshButton();
+});
+
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const w = cleanWords(words.value);
+  const n = wordCount(w);
+  if (!state.selected) return setHint("Choose a card first.", "err");
+  if (n < 1) return setHint("Write a word or two about your card.", "err");
+  if (n > 2) return setHint("Keep it to one or two words.", "err");
+  submit.disabled = true;
+  try {
+    await state.save({ card: state.selected, words: w, at: Date.now() });
+    state.mine = { card: state.selected, words: w };
+    setHint(`Saved: ${BY_ID[state.selected].name}, \u201c${w}\u201d. You can change it any time.`, "ok");
+  } catch (err) {
+    console.error(err);
+    setHint("Your card didn't save. Check your connection and try again.", "err");
+  }
+  refreshButton();
+});
+
+// ---------- Board ----------
+function renderBoard() {
+  const docs = state.docs.filter(d => BY_ID[d.card] && typeof d.words === "string");
+  $("count").textContent = docs.length ? `${docs.length} ${docs.length === 1 ? "person has" : "people have"} answered` : "";
+  $("empty").hidden = docs.length > 0;
+  const groups = new Map();
+  for (const d of docs) {
+    if (!groups.has(d.card)) groups.set(d.card, []);
+    groups.get(d.card).push(d);
+  }
+  const ordered = [...groups.entries()].sort((a, b) =>
+    b[1].length - a[1].length || CARDS.indexOf(BY_ID[a[0]]) - CARDS.indexOf(BY_ID[b[0]]));
+  const board = $("board");
+  board.innerHTML = "";
+  for (const [cardId, list] of ordered) {
+    const c = BY_ID[cardId];
+    const el = document.createElement("article");
+    el.className = "group";
+    el.innerHTML = `${svg(c)}<div><h3></h3><div class="chips"></div></div>`;
+    const h = el.querySelector("h3");
+    h.textContent = c.name + " ";
+    const small = document.createElement("small");
+    small.textContent = list.length === 1 ? "1 pick" : `${list.length} picks`;
+    h.appendChild(small);
+    const chips = el.querySelector(".chips");
+    list.sort((a, b) => (a.at || 0) - (b.at || 0)).forEach(d => {
+      const s = document.createElement("span");
+      s.className = "chip" + (d.id === state.uid ? " mine" : "");
+      s.textContent = d.words.slice(0, 40);
+      if (d.id === state.uid) s.title = "Your answer";
+      chips.appendChild(s);
+    });
+    board.appendChild(el);
+  }
+}
+
+function receive(docs) {
+  state.docs = docs;
+  const mine = docs.find(d => d.id === state.uid);
+  const hadMine = !!state.mine;
+  state.mine = mine && BY_ID[mine.card] ? { card: mine.card, words: mine.words } : null;
+  if (!hadMine && state.mine && !state.selected) {
+    select(state.mine.card, false);
+    if (!words.value) words.value = state.mine.words;
+    setHint(`Your card: ${BY_ID[state.mine.card].name}, \u201c${state.mine.words}\u201d. You can change it any time.`, "ok");
+  }
+  renderBoard();
+  refreshButton();
+}
+
+// ---------- Storage: Firebase, or preview mode ----------
+if (firebaseConfig.apiKey && window.firebase) {
+  firebase.initializeApp(firebaseConfig);
+  const col = firebase.firestore().collection("sessions").doc(SESSION).collection("answers");
+  state.save = data => col.doc(state.uid).set(data);
+  col.onSnapshot(
+    snap => receive(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+    err => {
+      console.error(err);
+      $("empty").textContent = "The group's answers couldn't load. Reload the page to try again.";
+    }
+  );
+} else {
+  const notice = $("notice");
+  notice.innerHTML = "<strong>Preview mode.</strong> Answers are saved only in this browser. Add your Firebase settings to the code to share answers with the group.";
+  notice.hidden = false;
+  const KEY = "lc-preview-" + SESSION;
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (_) { return []; } };
+  state.save = async data => {
+    const docs = load().filter(d => d.id !== state.uid).concat([{ id: state.uid, ...data }]);
+    try { localStorage.setItem(KEY, JSON.stringify(docs)); } catch (_) {}
+    receive(docs);
+  };
+  receive(load());
+}
+</script>
+</body>
+</html>
